@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,4 +30,7 @@ public class Comment {
     Post post;
     @Column(name = "parent_comment_id", nullable = true)
     Comment parentComment;
+
+    @OneToMany(mappedBy = "parentComment")
+    List<Comment> childComments = new ArrayList<>();
 }

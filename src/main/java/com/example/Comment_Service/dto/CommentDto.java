@@ -11,9 +11,12 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostDto {
+public class CommentDto {
 
-    private Long id;
-    private String title;
-    private String content;
+    Long id;
+    String content;
+    Long parentCommentId;
+    List<CommentDto> childComments;
+    Long postId;
+
 }

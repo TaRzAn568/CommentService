@@ -10,11 +10,12 @@ import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.PostService;
 import com.example.Comment_Service.utils.ModelMapperConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+@Service
 public class PostServiceImpl implements PostService {
     
     @Autowired
