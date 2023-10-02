@@ -26,8 +26,10 @@ public class Post {
     @Column(name = "content", length = 10000)
     private String content;
     private Date createDate;
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
+
 
 
 

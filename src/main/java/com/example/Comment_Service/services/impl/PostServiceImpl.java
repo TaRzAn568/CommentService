@@ -71,10 +71,9 @@ public class PostServiceImpl implements PostService {
         return modelMapperConfig.modelMapper().map(postDto, Post.class);
     }
     private PostDto postToDto(Post post){
-        TypeMap<Post, PostDto> propertyMapper = modelMapperConfig.modelMapper().createTypeMap(Post.class, PostDto.class);
-        propertyMapper.addMappings(
-                mapper-> mapper.map(s->s.getUser().getId(), PostDto::setUser_id)
-        );
-        return modelMapperConfig.modelMapper().map(post, PostDto.class);
+       PostDto postDto = modelMapperConfig.modelMapper().map(post, PostDto.class);
+       postDto.setUser_id(post.getUser().getId());
+
+        return  postDto;
     }
 }
