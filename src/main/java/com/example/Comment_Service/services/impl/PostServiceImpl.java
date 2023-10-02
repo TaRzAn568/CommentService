@@ -9,6 +9,8 @@ import com.example.Comment_Service.repository.PostRepository;
 import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.PostService;
 import com.example.Comment_Service.utils.ModelMapperConfig;
+import org.modelmapper.PropertyMap;
+import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +30,11 @@ public class PostServiceImpl implements PostService {
     UserRepository userRepository;
     @Override
     public PostDto createPost(PostDto postDto) {
-        Post post = dtoToPost(postDto);
+
+
+        User user = userRepository.findById(postDto.getUser_id()).orElseThrow(()-> new ResourceNotFoundException("User", "userId",postDto.getUser_id()));
+        Post post =  dtoToPost(postDto);
+        post.setUser(user);
         Post savedPost = postRepository.save(post);
         return postToDto(savedPost);
     }
@@ -65,6 +71,10 @@ public class PostServiceImpl implements PostService {
         return modelMapperConfig.modelMapper().map(postDto, Post.class);
     }
     private PostDto postToDto(Post post){
+        TypeMap<Post, PostDto> propertyMapper = modelMapperConfig.modelMapper().createTypeMap(Post.class, PostDto.class);
+        propertyMapper.addMappings(
+                mapper-> mapper.map(s->s.getUser().getId(), PostDto::setUser_id)
+        );
         return modelMapperConfig.modelMapper().map(post, PostDto.class);
     }
 }

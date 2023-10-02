@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @RestController
-@RequestMapping(path = "api/vi/posts")
+@RequestMapping(path = "api/v1/posts")
 public class PostController {
 
 
