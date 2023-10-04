@@ -1,13 +1,18 @@
 package com.example.Comment_Service.services.impl;
 
 import com.example.Comment_Service.dto.CommentDto;
+import com.example.Comment_Service.dto.ReplyDto;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
 import com.example.Comment_Service.model.Comment;
 import com.example.Comment_Service.model.Post;
+import com.example.Comment_Service.model.Reply;
+import com.example.Comment_Service.model.User;
 import com.example.Comment_Service.repository.CommentRepository;
 import com.example.Comment_Service.repository.PostRepository;
+import com.example.Comment_Service.repository.ReplyRepository;
+import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.CommentService;
-import com.example.Comment_Service.utils.ModelMapperConfig;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,46 +26,91 @@ public class CommentServiceImpl implements CommentService {
     private CommentRepository commentRepository;
 
     @Autowired
-    PostRepository postRepository;
+    private ReplyRepository replyRepository;
 
     @Autowired
-    ModelMapperConfig modelMapperConfig;
+    private PostRepository postRepository;
 
-    public CommentDto addComment(CommentDto commentDto, Long postId) {
+    @Autowired
+    private UserRepository userRepository;
 
-        Post post = postRepository.findById(postId).orElseThrow(()->new ResourceNotFoundException("Post", "id", postId));
-        Comment comment = dtoToComment(commentDto);
-        comment.setPost(post);
-        return commentToDto(commentRepository.save(comment));
+    @Autowired
+    ModelMapper modelMapper;
+
+
+
+    public CommentDto commentToDto(Comment comment){
+        CommentDto commentDto = modelMapper.map(comment, CommentDto.class);
+        commentDto.setPost_Id(comment.getPost().getId());
+        commentDto.setUser_Id(comment.getUser().getId());
+        return commentDto;
+    }
+    public Comment dtoToComment(CommentDto commentDto){
+        return modelMapper.map(commentDto, Comment.class);
+    }
+    public ReplyDto replyToDto(Reply reply){
+
+        ReplyDto replyDto =  modelMapper.map(reply, ReplyDto.class);
+        replyDto.setUser_Id(reply.getUser().getId());
+        replyDto.setParent_comment_Id(reply.getParentComment().getId());
+        return replyDto;
+    }
+    public Reply dtoToReply(ReplyDto replyDto){
+        return modelMapper.map(replyDto, Reply.class);
     }
 
-    public List<CommentDto> getTopLevelComments(Long postId) {
-        List<Comment> comments =  commentRepository.findByPostAndParentCommentIsNull(postId);
-        return comments.stream().map(this::commentToDto).collect(Collectors.toList());
-    }
 
-    public List<CommentDto> getChildComments(Long parentCommentId) {
-        List<Comment> comments =  commentRepository.findByParentComment(parentCommentId);
-        return comments.stream().map(this::commentToDto).collect(Collectors.toList());
+    @Override
+    public List<CommentDto> getAllTopLevelComments(Long postId) {
+       List<Comment> comments =  commentRepository.findByPostId(postId);
+        return comments.stream().map(this::commentToDto).toList();
     }
 
     @Override
-    public CommentDto addReply(CommentDto reply, Long parentCommentId) {
-        Comment parentComment = commentRepository.findById(parentCommentId).
-                orElseThrow(()-> new ResourceNotFoundException("Comment", "id",parentCommentId));
-
-        reply.setParentCommentId(parentComment.getId());
-        Comment comment = commentRepository.save(dtoToComment(reply));
-        return commentToDto(comment);
+    public CommentDto getCommentById(Long id) {
+        Comment comment =  commentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", id));
+        return  commentToDto(comment);
     }
 
-    public CommentDto commentToDto(Comment comment){
-        return modelMapperConfig.modelMapper().map(comment, CommentDto.class);
+    @Override
+    public CommentDto addComment(CommentDto commentDto) {
+        User user = userRepository.findById(commentDto.getUser_Id()).orElseThrow(()-> new ResourceNotFoundException("User", "id", commentDto.getUser_Id()));
+        Post post = postRepository.findById(commentDto.getPost_Id()).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", commentDto.getPost_Id()));
+        Comment comment = dtoToComment(commentDto);
+        comment.setPost(post);
+        comment.setUser(user);
+        Comment savedComment = commentRepository.save(comment);
+        return commentToDto(savedComment);
     }
-    public Comment dtoToComment(CommentDto commentDto){
-        return modelMapperConfig.modelMapper().map(commentDto, Comment.class);
+
+    @Override
+    public CommentDto updateComment(Long id, CommentDto newCommentDto) {
+        Comment comment = commentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", id));
+        Comment newComment = dtoToComment(newCommentDto);
+        comment.setText(newComment.getText());
+        Comment savedComment = commentRepository.save(comment);
+        return commentToDto(savedComment);
     }
 
+    @Override
+    public void deleteComment(Long id) {
+        Comment comment = commentRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", id));
+        commentRepository.delete(comment);
+    }
 
+    @Override
+    public ReplyDto addReplyToComment(ReplyDto replyDto, Long parentCommentId) {
+        User user = userRepository.findById(replyDto.getUser_Id()).orElseThrow(()-> new ResourceNotFoundException("User", "id", replyDto.getUser_Id()));
+        Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", parentCommentId));
+        Reply reply = dtoToReply(replyDto);
+        reply.setParentComment(parentComment);
+        reply.setUser(user);
+        return replyToDto( replyRepository.save(reply));
+    }
 
+    @Override
+    public List<ReplyDto> getRepliesToComment(Long parentCommentId) {
+        List<Reply> replies = replyRepository.findRepliesByCommentId(parentCommentId);
+        return replies.stream().map(this::replyToDto).collect(Collectors.toList());
+    }
 }

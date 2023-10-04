@@ -1,5 +1,6 @@
 package com.example.Comment_Service.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,16 +22,21 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-    String content;
-    Date createDate;
-    @Column(nullable = false)
-    User user;
-    @Column(nullable = false)
-    Post post;
-    @Column(name = "parent_comment_id", nullable = true)
-    Comment parentComment;
+    @JsonIgnore
+    private Long Id;
+    private String text;
+    private int likes;
+    private int dislikes;
 
-    @OneToMany(mappedBy = "parentComment")
-    List<Comment> childComments = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
+
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Reply> replies = new ArrayList<>();
 }

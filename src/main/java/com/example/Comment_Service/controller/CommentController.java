@@ -1,8 +1,12 @@
 package com.example.Comment_Service.controller;
 
+import com.example.Comment_Service.dto.ApiResponse;
 import com.example.Comment_Service.dto.CommentDto;
+import com.example.Comment_Service.dto.ReplyDto;
 import com.example.Comment_Service.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,18 +17,39 @@ public class CommentController {
 
     @Autowired
     CommentService commentService;
-    @PostMapping("/add-comment/post/{postId}")
-    public CommentDto addComment(@RequestBody CommentDto commentDto, @PathVariable Long postId) {
-        return commentService.addComment(commentDto, postId);
+    @PostMapping("/add")
+    public ResponseEntity<CommentDto> addComment(@RequestBody CommentDto commentDto) {
+        CommentDto responseDto =  commentService.addComment(commentDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
-    @GetMapping("/top-level/{postId}")
+    @PutMapping("/update/{id}")
+    public CommentDto updateComment(@PathVariable Long id, @RequestBody CommentDto commentDto) {
+        return commentService.updateComment(id, commentDto);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse> deleteComment(@PathVariable Long id) {
+         commentService.deleteComment(id);
+        return new ResponseEntity<>(new ApiResponse("Comment deleted successfully", true), HttpStatus.OK);
+
+    }
+
+    @GetMapping("/topLevelComments/{postId}")
     public List<CommentDto> getTopLevelComments(@PathVariable Long postId) {
-        return commentService.getTopLevelComments(postId);
+        return commentService.getAllTopLevelComments(postId);
     }
 
-    @GetMapping("/{parentCommentId}/children")
-    public List<CommentDto> getChildComments(@PathVariable Long parentCommentId) {
-        return commentService.getChildComments(parentCommentId);
+    @GetMapping("/{parentCommentId}/replies")
+    public List<ReplyDto> getAllReplies(@PathVariable Long parentCommentId) {
+        return commentService.getRepliesToComment(parentCommentId);
     }
+
+    @PostMapping("/{comment_id}/reply")
+    public ResponseEntity<ReplyDto> addComment(@PathVariable Long comment_id, @RequestBody ReplyDto replyDto) {
+        ReplyDto responseDto =  commentService.addReplyToComment(replyDto, comment_id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+
+
 }

@@ -1,10 +1,12 @@
 package com.example.Comment_Service.dto;
 
+import com.example.Comment_Service.model.Reply;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -14,9 +16,12 @@ import java.util.List;
 public class CommentDto {
 
     Long id;
-    String content;
+    String text;
     Long parentCommentId;
-    List<CommentDto> childComments;
-    Long postId;
+    int likes;
+    int dislikes;
+    Long post_Id;
+    Long user_Id;
+    List<Reply> replies = new ArrayList<>();
 
 }
