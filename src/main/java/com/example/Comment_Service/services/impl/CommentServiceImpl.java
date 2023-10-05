@@ -43,6 +43,7 @@ public class CommentServiceImpl implements CommentService {
         CommentDto commentDto = modelMapper.map(comment, CommentDto.class);
         commentDto.setPost_Id(comment.getPost().getId());
         commentDto.setUser_Id(comment.getUser().getId());
+        commentDto.setReplies(comment.getReplies().stream().map(this::replyToDto).collect(Collectors.toList()));
         return commentDto;
     }
     public Comment dtoToComment(CommentDto commentDto){
@@ -104,6 +105,16 @@ public class CommentServiceImpl implements CommentService {
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(()-> new ResourceNotFoundException("Comment", "id", parentCommentId));
         Reply reply = dtoToReply(replyDto);
         reply.setParentComment(parentComment);
+        reply.setUser(user);
+        return replyToDto( replyRepository.save(reply));
+    }
+    @Override
+    public ReplyDto addReplyToReply(ReplyDto replyDto, Long replyId) {
+        User user = userRepository.findById(replyDto.getUser_Id()).orElseThrow(()-> new ResourceNotFoundException("User", "id", replyDto.getUser_Id()));
+        Reply parentReply = replyRepository.findById(replyId).orElseThrow(()-> new ResourceNotFoundException("Reply", "id", replyId));
+        Reply reply = dtoToReply(replyDto);
+        //need to change
+        reply.setParentComment(parentReply.getParentComment());
         reply.setUser(user);
         return replyToDto( replyRepository.save(reply));
     }

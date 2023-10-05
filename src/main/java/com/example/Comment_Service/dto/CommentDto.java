@@ -22,6 +22,6 @@ public class CommentDto {
     int dislikes;
     Long post_Id;
     Long user_Id;
-    List<Reply> replies = new ArrayList<>();
+    List<ReplyDto> replies = new ArrayList<>();
 
 }

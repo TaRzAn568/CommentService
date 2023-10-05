@@ -24,4 +24,5 @@ public interface CommentService {
      List<ReplyDto> getRepliesToComment(Long parentCommentId);
 
 
+     ReplyDto addReplyToReply(ReplyDto replyDto, Long replyId);
 }

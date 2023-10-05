@@ -46,8 +46,13 @@ public class CommentController {
     }
 
     @PostMapping("/{comment_id}/reply")
-    public ResponseEntity<ReplyDto> addComment(@PathVariable Long comment_id, @RequestBody ReplyDto replyDto) {
+    public ResponseEntity<ReplyDto> addReplyOnComment(@PathVariable Long comment_id, @RequestBody ReplyDto replyDto) {
         ReplyDto responseDto =  commentService.addReplyToComment(replyDto, comment_id);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
+    }
+    @PostMapping("/{reply_id}/reply")
+    public ResponseEntity<ReplyDto> addReplyOnReply(@PathVariable Long reply_id, @RequestBody ReplyDto replyDto) {
+        ReplyDto responseDto =  commentService.addReplyToReply(replyDto, reply_id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 

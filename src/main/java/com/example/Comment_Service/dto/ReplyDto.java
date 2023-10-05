@@ -11,6 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ReplyDto {
 
+    private String id;
     private String text;
     private int likes;
     private int dislikes;

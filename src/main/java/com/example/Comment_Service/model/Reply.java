@@ -13,7 +13,6 @@ public class Reply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonIgnore
     private Long id;
 
     private String text;
@@ -25,6 +24,7 @@ public class Reply {
     @JsonIgnore
     private Comment parentComment;
 
+    private Reply parentReply;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
