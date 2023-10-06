@@ -34,7 +34,7 @@ public class CommentServiceImpl implements CommentService {
     ModelMapper modelMapper;
 
 
-    private CommentDto commentToDtoWithoutChild(Comment comment){
+    /*private CommentDto commentToDtoWithoutChild(Comment comment){
         CommentDto commentDto = modelMapper.addMappings(
                 new PropertyMap<Comment, CommentDto>() {
 
@@ -47,18 +47,9 @@ public class CommentServiceImpl implements CommentService {
         commentDto.setPost_Id(comment.getPost().getId());
         commentDto.setUser_Id(comment.getUser().getId());
         return commentDto;
-    }
+    }*/
     public CommentDto commentToDto(Comment comment) {
-        CommentDto commentDto = modelMapper.addMappings(
-                new PropertyMap<Comment, CommentDto>() {
-                    final List<CommentDto> childComments = comment.getChildComments().stream().map(ParentChildComment::getChildComment).
-                        map(comment1 -> commentToDtoWithoutChild(comment1)).collect(Collectors.toList());
-                    @Override
-                    protected void configure() {
-                        map().setChildComments(childComments);
-                    }
-                }
-        ).map(comment);
+        CommentDto commentDto = modelMapper.map(comment, CommentDto.class);
         commentDto.setPost_Id(comment.getPost().getId());
         commentDto.setUser_Id(comment.getUser().getId());
         return commentDto;
