@@ -62,6 +62,12 @@ public class PostServiceImpl implements PostService {
         return posts.stream().map(this::postToDto).collect(Collectors.toList());    }
 
     @Override
+    public List<PostDto> getAllPost() {
+        List<Post> posts = postRepository.findAll();
+        return posts.stream().map(this::postToDto).collect(Collectors.toList());
+    }
+
+    @Override
     public void deletePost(Long id) {
         Post post = postRepository.findById(id).orElseThrow(()->(new ResourceNotFoundException("Post", "id", id)));
         postRepository.delete(post);

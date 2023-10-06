@@ -18,7 +18,6 @@ public class CommentDto {
 
     Long id;
     String text;
-    Long parentCommentId;
     int likes;
     int dislikes;
     Long post_Id;
@@ -26,4 +25,5 @@ public class CommentDto {
 
 
     List<CommentDto> childComment = new ArrayList<>();
+    List<CommentDto> parentComment = new ArrayList<>();
 }
