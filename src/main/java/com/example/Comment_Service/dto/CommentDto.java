@@ -1,6 +1,5 @@
 package com.example.Comment_Service.dto;
 
-import com.example.Comment_Service.model.Reply;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +21,6 @@ public class CommentDto {
     int dislikes;
     Long post_Id;
     Long user_Id;
-    List<ReplyDto> replies = new ArrayList<>();
+    List<CommentDto> childComments = new ArrayList<>();
 
 }

@@ -2,7 +2,6 @@ package com.example.Comment_Service.controller;
 
 import com.example.Comment_Service.dto.ApiResponse;
 import com.example.Comment_Service.dto.CommentDto;
-import com.example.Comment_Service.dto.ReplyDto;
 import com.example.Comment_Service.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,9 +16,9 @@ public class CommentController {
 
     @Autowired
     CommentService commentService;
-    @PostMapping("/add")
-    public ResponseEntity<CommentDto> addComment(@RequestBody CommentDto commentDto) {
-        CommentDto responseDto =  commentService.addComment(commentDto);
+    @PostMapping("/add/{postId}")
+    public ResponseEntity<CommentDto> addComment(@RequestBody CommentDto commentDto, @PathVariable Long postId) {
+        CommentDto responseDto =  commentService.addCommentToPost(commentDto, postId);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
@@ -41,20 +40,16 @@ public class CommentController {
     }
 
     @GetMapping("/{parentCommentId}/replies")
-    public List<ReplyDto> getAllReplies(@PathVariable Long parentCommentId) {
+    public List<CommentDto> getAllReplies(@PathVariable Long parentCommentId) {
         return commentService.getRepliesToComment(parentCommentId);
     }
 
     @PostMapping("/{comment_id}/reply")
-    public ResponseEntity<ReplyDto> addReplyOnComment(@PathVariable Long comment_id, @RequestBody ReplyDto replyDto) {
-        ReplyDto responseDto =  commentService.addReplyToComment(replyDto, comment_id);
+    public ResponseEntity<CommentDto> addReplyOnComment(@PathVariable Long comment_id, @RequestBody CommentDto commentDto) {
+        CommentDto responseDto =  commentService.addReplyToComment(commentDto, comment_id);
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
-    @PostMapping("/{reply_id}/reply")
-    public ResponseEntity<ReplyDto> addReplyOnReply(@PathVariable Long reply_id, @RequestBody ReplyDto replyDto) {
-        ReplyDto responseDto =  commentService.addReplyToReply(replyDto, reply_id);
-        return new ResponseEntity<>(responseDto, HttpStatus.OK);
-    }
+
 
 
 }
