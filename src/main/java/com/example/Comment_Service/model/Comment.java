@@ -1,5 +1,6 @@
 package com.example.Comment_Service.model;
 
+import com.example.Comment_Service.dto.CommentDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,6 +37,13 @@ public class Comment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private Comment parentCommentId;
+
+
+
 
 
 

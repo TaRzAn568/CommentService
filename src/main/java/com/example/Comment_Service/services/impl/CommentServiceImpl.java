@@ -30,9 +30,6 @@ public class CommentServiceImpl implements CommentService {
     private UserRepository userRepository;
 
     @Autowired
-    private ParentChildCommentRepository parentChildCommentRepository;
-
-    @Autowired
     ModelMapper modelMapper;
 
 
@@ -136,19 +133,14 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto addReplyToComment(CommentDto commentDto, Long parentCommentId) {
         User user = userRepository.findById(commentDto.getUser_Id()).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentDto.getUser_Id()));
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", parentCommentId));
-        int parentDepth = commentRepository.findDepthOfComment(parentCommentId).orElse(0);
+
         Comment childComment = dtoToComment(commentDto);
         childComment.setUser(user);
         childComment.setPost(parentComment.getPost());
+        childComment.setParentCommentId(parentComment);
 
-        ParentChildComment parentChildComment = new ParentChildComment();
-        parentChildComment.setParentComment(parentComment);
-        parentChildComment.setChildComment(childComment);
-        parentChildComment.setDepth(parentDepth + 1);
 
-        CommentDto savedCommentDto =  commentToDto(commentRepository.save(childComment));
-        parentChildCommentRepository.save(parentChildComment);
-        return savedCommentDto;
+        return commentToDto(commentRepository.save(childComment));
     }
 
 
@@ -156,7 +148,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> getRepliesToComment(Long parentCommentId) {
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", parentCommentId));
-        List<Comment> replies = commentRepository.findAllChildComment(parentCommentId);
+        List<Comment> replies = commentRepository.findNextLevelComments(parentComment);
 
         return replies.stream().map(this::commentToDto).collect(Collectors.toList());
     }
