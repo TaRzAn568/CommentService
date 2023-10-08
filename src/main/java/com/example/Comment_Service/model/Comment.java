@@ -43,6 +43,17 @@ public class Comment {
     private Comment parentCommentId;
 
 
+    // Create relationships for users who have liked and disliked the comment
+    @ManyToMany
+    @JoinTable(
+            name = "comment_like",
+            joinColumns = @JoinColumn(name = "comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> likedUsers = new ArrayList<>();
+
+
+
 
 
 

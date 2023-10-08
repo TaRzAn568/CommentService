@@ -1,6 +1,8 @@
 package com.example.Comment_Service.services;
 
+import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.CommentDto;
+import com.example.Comment_Service.model.Comment;
 
 import java.util.List;
 
@@ -22,6 +24,10 @@ public interface CommentService {
 
 
      List<CommentDto> getRepliesToComment(Long parentCommentId);
+
+     public void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
+
+     public void decrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
 
 
 }

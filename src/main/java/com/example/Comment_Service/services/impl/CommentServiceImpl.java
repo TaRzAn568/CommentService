@@ -1,5 +1,6 @@
 package com.example.Comment_Service.services.impl;
 
+import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.CommentDto;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
 import com.example.Comment_Service.model.*;
@@ -151,5 +152,23 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> replies = commentRepository.findNextLevelComments(parentComment);
 
         return replies.stream().map(this::commentToDto).collect(Collectors.toList());
+    }
+
+    public void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus) {
+        if (likeStatus == LikeStatus.LIKE) {
+            comment.setLikes(comment.getLikes() + 1);
+        } else if (likeStatus == LikeStatus.DISLIKE) {
+            comment.setDislikes(comment.getDislikes() + 1);
+        }
+        commentRepository.save(comment);
+    }
+
+    public void decrementLikesOrDislikes(Comment comment, LikeStatus likeStatus) {
+        if (likeStatus == LikeStatus.LIKE && comment.getLikes() > 0) {
+            comment.setLikes(comment.getLikes() - 1);
+        } else if (likeStatus == LikeStatus.DISLIKE && comment.getDislikes() > 0) {
+            comment.setDislikes(comment.getDislikes() - 1);
+        }
+        commentRepository.save(comment);
     }
 }
