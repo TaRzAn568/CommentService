@@ -6,6 +6,8 @@ import com.example.Comment_Service.model.*;
 import com.example.Comment_Service.repository.*;
 import com.example.Comment_Service.services.CommentService;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
+import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,43 +36,55 @@ public class CommentServiceImpl implements CommentService {
     ModelMapper modelMapper;
 
 
-    /*private CommentDto commentToDtoWithoutChild(Comment comment){
-        CommentDto commentDto = modelMapper.addMappings(
-                new PropertyMap<Comment, CommentDto>() {
-
-                    @Override
-                    protected void configure() {
-                        skip().setChildComments(null);
-                    }
-                }
-        ).map(comment);
-        commentDto.setPost_Id(comment.getPost().getId());
-        commentDto.setUser_Id(comment.getUser().getId());
-        return commentDto;
-    }*/
     public CommentDto commentToDto(Comment comment) {
-        CommentDto commentDto = commentToDtoWithNoChild(comment);
-        List<Comment> childComments = comment.getChildComments().stream().map(ParentChildComment::getChildComment).toList();
-        List<CommentDto> childCommentDtos = new ArrayList<>();
-        for(Comment child : childComments){
-            childCommentDtos.add(commentToDtoWithNoChild(child));
-        }
-        commentDto.setChildComment(childCommentDtos);
-        return commentDto;
+
+    PropertyMap<Comment, CommentDto> propertyMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().setPost_Id(source.getPost().getId());
+                map().setUser_Id(source.getUser().getId());
+            }
+        };
+
+    TypeMap<Comment, CommentDto> typeMap = modelMapper.getTypeMap(Comment.class, CommentDto.class);
+    if (typeMap == null){
+        modelMapper.addMappings(propertyMap);
+    }
+    return modelMapper.map(comment, CommentDto.class);
 
 
+
+
+       /* // Create a custom TypeMap to handle child and parent comments
+        TypeMap<Comment, CommentDto> typeMap = modelMapper.createTypeMap(Comment.class, CommentDto.class);
+
+        // Configure custom mappings for childComment and parentComment
+
+        typeMap.addMapping(src -> src.getChildComments().stream()
+                .map(child -> modelMapper.map(child.getChildComment(), CommentDto.class))
+                .collect(Collectors.toList()), CommentDto::setChildComment);
+
+        typeMap.addMapping(src -> src.getParentComments().stream()
+                .map(parent -> modelMapper.map(parent.getParentComment(), CommentDto.class))
+                .collect(Collectors.toList()), CommentDto::setParentComment);
+
+        // Perform the conversion
+        return modelMapper.map(comment, CommentDto.class);*/
+
+       /* TypeMap<Comment, CommentDto> typeMap = modelMapper.createTypeMap(Comment.class, CommentDto.class);
+        typeMap.addMappings(mapper -> {
+            mapper.map(src -> src.getChildComments().stream()
+                    .map(child -> modelMapper.map(child.getChildComment(), CommentDto.class))
+                    .collect(Collectors.toList()), CommentDto::setChildComment);
+            mapper.map(src -> src.getParentComments().stream()
+                    .map(parent -> modelMapper.map(parent.getParentComment(), CommentDto.class))
+                    .collect(Collectors.toList()), CommentDto::setParentComment);
+        });
+
+        return modelMapper.map(comment,CommentDto.class);*/
     }
 
-    private static CommentDto commentToDtoWithNoChild(Comment comment) {
-        CommentDto commentDto = new CommentDto();
-        commentDto.setId(comment.getId());
-        commentDto.setText(comment.getText());
-        commentDto.setUser_Id(comment.getUser().getId());
-        commentDto.setPost_Id(comment.getPost().getId());
-        commentDto.setLikes(comment.getLikes());
-        commentDto.setDislikes(comment.getDislikes());
-        return commentDto;
-    }
+
 
     public Comment dtoToComment(CommentDto commentDto) {
         return modelMapper.map(commentDto, Comment.class);
@@ -122,7 +136,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto addReplyToComment(CommentDto commentDto, Long parentCommentId) {
         User user = userRepository.findById(commentDto.getUser_Id()).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentDto.getUser_Id()));
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", parentCommentId));
-
+        int parentDepth = commentRepository.findDepthOfComment(parentCommentId).orElse(0);
         Comment childComment = dtoToComment(commentDto);
         childComment.setUser(user);
         childComment.setPost(parentComment.getPost());
@@ -130,6 +144,7 @@ public class CommentServiceImpl implements CommentService {
         ParentChildComment parentChildComment = new ParentChildComment();
         parentChildComment.setParentComment(parentComment);
         parentChildComment.setChildComment(childComment);
+        parentChildComment.setDepth(parentDepth + 1);
 
         CommentDto savedCommentDto =  commentToDto(commentRepository.save(childComment));
         parentChildCommentRepository.save(parentChildComment);

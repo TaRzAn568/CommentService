@@ -22,4 +22,6 @@ public class ParentChildComment {
     Comment parentComment;
     @ManyToOne
     Comment childComment;
+
+    int depth;
 }

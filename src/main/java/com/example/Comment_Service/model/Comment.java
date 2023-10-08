@@ -37,10 +37,6 @@ public class Comment {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @OneToMany(mappedBy = "parentComment")
-    List<ParentChildComment> parentComments= new ArrayList<>();
 
-    @OneToMany(mappedBy = "childComment")
-    List<ParentChildComment> childComments= new ArrayList<>();
 
 }

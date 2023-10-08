@@ -24,6 +24,4 @@ public class CommentDto {
     Long user_Id;
 
 
-    List<CommentDto> childComment = new ArrayList<>();
-    List<CommentDto> parentComment = new ArrayList<>();
 }
