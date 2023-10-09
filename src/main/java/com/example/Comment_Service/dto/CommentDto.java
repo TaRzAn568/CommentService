@@ -23,5 +23,4 @@ public class CommentDto {
     Long post_Id;
     Long user_Id;
 
-
 }

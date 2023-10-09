@@ -33,6 +33,16 @@ public class PostMapper {
     }
 
     public Post toEntity(PostDto postDto) {
+        PropertyMap<PostDto, Post> propertyMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().getUser().setId(source.getUser_id());
+            }
+        };
+        TypeMap<PostDto, Post> typeMap = modelMapper.getTypeMap(PostDto.class, Post.class);
+        if (typeMap == null) {
+            modelMapper.addMappings(propertyMap);
+        }
         return modelMapper.map(postDto, Post.class);
     }
 }

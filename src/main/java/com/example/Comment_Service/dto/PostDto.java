@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -20,4 +21,6 @@ public class PostDto {
     int likes;
     int dislikes;
     private Long user_id;
+    private Date createDate;
+
 }

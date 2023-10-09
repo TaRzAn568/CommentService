@@ -1,5 +1,6 @@
 package com.example.Comment_Service.mapping;
 
+import com.example.Comment_Service.dto.CommentDto;
 import com.example.Comment_Service.dto.LikeDislikeDto;
 import com.example.Comment_Service.dto.UserDto;
 import com.example.Comment_Service.model.Comment;
@@ -7,6 +8,8 @@ import com.example.Comment_Service.model.LikeDislike;
 import com.example.Comment_Service.model.Post;
 import com.example.Comment_Service.model.User;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
+import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,23 +24,33 @@ public class LikeDislikeMapper {
     }
 
     public LikeDislikeDto toDto(LikeDislike likeDisLike) {
-
-        LikeDislikeDto likeDislikeDto = new LikeDislikeDto();
-        likeDislikeDto.setId(likeDisLike.getId());
-        likeDislikeDto.setCommentId(likeDisLike.getComment().getId());
-        likeDislikeDto.setUserId(likeDisLike.getUser().getId());
-        likeDislikeDto.setStatus(likeDisLike.getStatus());
-
-        return likeDislikeDto;
+        PropertyMap<LikeDislike, LikeDislikeDto> propertyMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().setPostId(source.getPost().getId());
+                map().setUserId(source.getUser().getId());
+            }
+        };
+        TypeMap<LikeDislike, LikeDislikeDto> typeMap = modelMapper.getTypeMap(LikeDislike.class, LikeDislikeDto.class);
+        if (typeMap == null) {
+            modelMapper.addMappings(propertyMap);
+        }
+        return modelMapper.map(likeDisLike, LikeDislikeDto.class);
     }
 
-    public LikeDislike toEntity(LikeDislikeDto likeDislikeDto, User user, Comment comment, Post post) {
-        LikeDislike likeDisLike = new LikeDislike();
-        likeDisLike.setId(likeDislikeDto.getId());
-        likeDisLike.setComment(comment);
-        likeDisLike.setUser(user);
-        likeDisLike.setStatus(likeDislikeDto.getStatus());
+    public LikeDislike toEntity(LikeDislikeDto likeDislikeDto) {
 
-        return likeDisLike;
+        PropertyMap<LikeDislikeDto, LikeDislike> propertyMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().getUser().setId(source.getUserId());
+                map().getPost().setId(source.getPostId());
+            }
+        };
+        TypeMap<LikeDislikeDto, LikeDislike> typeMap = modelMapper.getTypeMap(LikeDislikeDto.class, LikeDislike.class);
+        if (typeMap == null) {
+            modelMapper.addMappings(propertyMap);
+        }
+        return modelMapper.map(likeDislikeDto, LikeDislike.class);
     }
 }

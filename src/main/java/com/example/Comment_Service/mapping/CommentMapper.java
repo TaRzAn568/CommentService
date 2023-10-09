@@ -10,11 +10,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CommentMapper {
-
     private final ModelMapper modelMapper;
 
     @Autowired
-    public CommentMapper(ModelMapper modelMapper){
+    public CommentMapper(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
     }
 
@@ -27,17 +26,25 @@ public class CommentMapper {
                 map().setUser_Id(source.getUser().getId());
             }
         };
-
         TypeMap<Comment, CommentDto> typeMap = modelMapper.getTypeMap(Comment.class, CommentDto.class);
-        if (typeMap == null){
+        if (typeMap == null) {
             modelMapper.addMappings(propertyMap);
         }
         return modelMapper.map(comment, CommentDto.class);
-
-
     }
 
     public Comment toEntity(CommentDto commentDto) {
+        PropertyMap<CommentDto, Comment> propertyMap = new PropertyMap<>() {
+            @Override
+            protected void configure() {
+                map().getUser().setId(source.getUser_Id());
+                map().getPost().setId(source.getPost_Id());
+            }
+        };
+        TypeMap<CommentDto, Comment> typeMap = modelMapper.getTypeMap(CommentDto.class, Comment.class);
+        if (typeMap == null) {
+            modelMapper.addMappings(propertyMap);
+        }
         return modelMapper.map(commentDto, Comment.class);
     }
 }

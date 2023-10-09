@@ -43,39 +43,37 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     @Autowired
     private CommentMapper commentMapper;
 
-
-
-
-
     public ApiResponse<LikeDislikeDto> likeOrDisLikeComment(LikeDislikeDto likeDislikeDto, LikeStatus likeOrDislike) {
         User user = userRepository.findById(likeDislikeDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", "Id", likeDislikeDto.getUserId()));
         Comment comment = commentRepository.findById(likeDislikeDto.getCommentId()).orElseThrow(() -> new ResourceNotFoundException("Comment", "Id", likeDislikeDto.getCommentId()));
         likeDislikeDto.setStatus(likeOrDislike);
-        LikeDislike likeDisLike = likeDislikeMapper.toEntity(likeDislikeDto, user, comment, null);
+        likeDislikeDto.setCommentId(comment.getId());
+        likeDislikeDto.setUserId(user.getId());
+
         if (!hasUserLikedOrDislikedComment(comment, user, likeDislikeDto.getStatus())) {
             LikeStatus previousLikeOrDisLike = CommonUtils.getReverseStatus(likeDislikeDto.getStatus());
             if (hasUserLikedOrDislikedComment(comment, user, previousLikeOrDisLike)) {
                 removeLikeOrDislikeOnComment(likeDislikeDto.getCommentId(), user.getId());
             }
             commentService.incrementLikesOrDislikes(comment, likeDislikeDto.getStatus());
-            return new ApiResponse<>("User "+user.getId()+ " has given "+ likeDisLike.getStatus() +" to this comment ", true, likeDislikeMapper.toDto(likeDislikeRepository.save(likeDisLike)));
+            LikeDislike likeDisLike = likeDislikeMapper.toEntity(likeDislikeDto);
+
+            return new ApiResponse<>("User " + user.getId() + " has given " + likeDisLike.getStatus() + " to this comment ", true, likeDislikeMapper.toDto(likeDislikeRepository.save(likeDisLike)));
         }
-        return new ApiResponse<>("User "+user.getId()+ " has already given "+ likeDisLike.getStatus() +" to the comment with id " + likeDisLike.getComment().getId(), true, null); // User has already liked/disliked this comment
+        return new ApiResponse<>("User " + user.getId() + " has already given " + likeDislikeDto.getStatus() + " to the comment with id " + likeDislikeDto.getCommentId(), true, null); // User has already liked/disliked this comment
     }
-
-
 
 
     public ApiResponse<Object> removeLikeOrDislikeOnComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "Id", commentId));
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "Id", userId));
         LikeDislike likeDisLike = likeDislikeRepository.findByCommentAndUser(comment, user);
-        if (likeDisLike!=null && hasUserLikedOrDislikedComment(comment, user, likeDisLike.getStatus())) {
+        if (likeDisLike != null && hasUserLikedOrDislikedComment(comment, user, likeDisLike.getStatus())) {
             commentService.decrementLikesOrDislikes(likeDisLike.getComment(), likeDisLike.getStatus());
             likeDislikeRepository.delete(likeDisLike);
-            return new ApiResponse<>(likeDisLike.getStatus()+" deleted on comment", true, null);
+            return new ApiResponse<>(likeDisLike.getStatus() + " deleted on comment", true, null);
         }
-        return new ApiResponse<>("No reaction exist on this comment by user "+user.getId(), true, null);
+        return new ApiResponse<>("No reaction exist on this comment by user " + user.getId(), true, null);
     }
 
     public List<UserDto> getLikesOnComment(Long commentId) {
@@ -109,10 +107,5 @@ public class CommentLikeServiceImpl implements CommentLikeService {
     public boolean hasUserLikedOrDislikedComment(Comment comment, User user, LikeStatus likeStatus) {
         return likeDislikeRepository.existsByCommentAndUserAndStatus(comment, user, likeStatus);
     }
-
-
-
-
-
 }
 
