@@ -12,8 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "comment_like")
-public class CommentLike {
+@Table(name = "like_dislike")
+public class LikeDislike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,6 +28,10 @@ public class CommentLike {
 
     @Enumerated(EnumType.STRING)
     private LikeStatus status; // Enum for LIKE or DISLIKE
+
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
 
     // Constructors, getters/setters
 }

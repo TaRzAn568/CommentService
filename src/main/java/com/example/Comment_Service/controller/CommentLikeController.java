@@ -1,8 +1,9 @@
 package com.example.Comment_Service.controller;
 
 import com.example.Comment_Service.ENUM.LikeStatus;
+import com.example.Comment_Service.dto.ApiResponse;
 import com.example.Comment_Service.dto.CommentDto;
-import com.example.Comment_Service.dto.CommentLikeDto;
+import com.example.Comment_Service.dto.LikeDislikeDto;
 import com.example.Comment_Service.dto.UserDto;
 import com.example.Comment_Service.services.CommentLikeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,37 +16,38 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/comment-likes")
+@RequestMapping("/api/v1/comment-like/")
 public class CommentLikeController {
 
     @Autowired
     private CommentLikeService commentLikeService;
 
     @PostMapping("/like")
-    public ResponseEntity<CommentLikeDto> likeComment(@RequestBody CommentLikeDto commentLikeDto) {
+    public ResponseEntity<ApiResponse<LikeDislikeDto>> likeComment(@RequestBody LikeDislikeDto likeDislikeDto) {
         // Assuming LikeRequest includes commentId, userId, and status
-        commentLikeDto.setStatus(LikeStatus.LIKE);
-        CommentLikeDto commentLike = commentLikeService.likeOrDisLikeComment(commentLikeDto, LikeStatus.LIKE);
+        likeDislikeDto.setStatus(LikeStatus.LIKE);
+        ApiResponse<LikeDislikeDto> response = commentLikeService.likeOrDisLikeComment(likeDislikeDto, LikeStatus.LIKE);
 
-        return new ResponseEntity<>(commentLike, HttpStatus.CREATED);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/dislike")
-    public ResponseEntity<CommentLikeDto> dislikeComment(@RequestBody CommentLikeDto commentLikeDto) {
+    public ResponseEntity<ApiResponse<LikeDislikeDto>> dislikeComment(@RequestBody LikeDislikeDto likeDislikeDto) {
         // Assuming LikeRequest includes commentId, userId, and status
-        CommentLikeDto commentLike = commentLikeService.likeOrDisLikeComment(commentLikeDto,LikeStatus.DISLIKE);
-        return new ResponseEntity<>(commentLike, HttpStatus.CREATED);
+        likeDislikeDto.setStatus(LikeStatus.LIKE);
+        ApiResponse<LikeDislikeDto> response = commentLikeService.likeOrDisLikeComment(likeDislikeDto, LikeStatus.DISLIKE);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping("/comment/{commentId}/user/{userId}")
-    public ResponseEntity<Void> removeLikeOrDislike(@PathVariable Long commentId, Long userId) {
-        commentLikeService.removeLikeOrDislike(commentId, userId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<ApiResponse<Object>> removeLikeOrDislike(@PathVariable Long commentId, @PathVariable Long userId) {
+        return new ResponseEntity<>(commentLikeService.removeLikeOrDislikeOnComment(commentId, userId),HttpStatus.OK);
     }
 
     @GetMapping("/comment/{commentId}/likes")
     public ResponseEntity<Map<String, Object>> getLikesByComment(@PathVariable Long commentId) {
-        List<UserDto> likes = commentLikeService.getLikesByComment(commentId);
+        List<UserDto> likes = commentLikeService.getLikesOnComment(commentId);
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("Total Likes", likes.size());
         responseMap.put("Users", likes);
@@ -54,7 +56,7 @@ public class CommentLikeController {
 
     @GetMapping("/comment/{commentId}/dislikes")
     public ResponseEntity<Map<String, Object>> getDislikesByComment(@PathVariable Long commentId) {
-        List<UserDto> disLikes = commentLikeService.getDislikesByComment(commentId);
+        List<UserDto> disLikes = commentLikeService.getDislikesOnComment(commentId);
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("Total DisLikes", disLikes.size());
         responseMap.put("Users", disLikes);
@@ -72,4 +74,5 @@ public class CommentLikeController {
         List<CommentDto> dislikedComments = commentLikeService.getDislikedCommentsByUser(userId);
         return new ResponseEntity<>(dislikedComments, HttpStatus.OK);
     }
+
 }

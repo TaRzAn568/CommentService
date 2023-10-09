@@ -1,19 +1,20 @@
 package com.example.Comment_Service.services.impl;
 
 import com.example.Comment_Service.ENUM.LikeStatus;
-import com.example.Comment_Service.dto.CommentDto;
-import com.example.Comment_Service.dto.CommentLikeDto;
-import com.example.Comment_Service.dto.UserDto;
+import com.example.Comment_Service.dto.*;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
+import com.example.Comment_Service.mapping.CommentMapper;
+import com.example.Comment_Service.mapping.LikeDislikeMapper;
+import com.example.Comment_Service.mapping.UserMapper;
 import com.example.Comment_Service.model.Comment;
-import com.example.Comment_Service.model.CommentLike;
+import com.example.Comment_Service.model.LikeDislike;
 import com.example.Comment_Service.model.User;
-import com.example.Comment_Service.repository.CommentLikeRepository;
+import com.example.Comment_Service.repository.LikeDislikeRepository;
 import com.example.Comment_Service.repository.CommentRepository;
 import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.CommentLikeService;
 import com.example.Comment_Service.services.CommentService;
-import org.modelmapper.ModelMapper;
+import com.example.Comment_Service.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,106 +24,95 @@ import java.util.stream.Collectors;
 @Service
 public class CommentLikeServiceImpl implements CommentLikeService {
     @Autowired
-    private CommentLikeRepository commentLikeRepository;
+    private LikeDislikeRepository likeDislikeRepository;
 
     @Autowired
     private CommentService commentService;
 
     @Autowired
-    CommentRepository commentRepository;
+    private CommentRepository commentRepository;
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    ModelMapper modelMapper;
+    private LikeDislikeMapper likeDislikeMapper;
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private CommentMapper commentMapper;
 
 
-    CommentLikeDto commentLikeToDto(CommentLike commentLike) {
-        CommentLikeDto commentLikeDto = new CommentLikeDto();
-        commentLikeDto.setId(commentLike.getId());
-        commentLikeDto.setCommentId(commentLike.getComment().getId());
-        commentLikeDto.setUserId(commentLike.getUser().getId());
-        commentLikeDto.setStatus(commentLike.getStatus());
 
-        return commentLikeDto;
-    }
 
-    CommentLike dtoToCommentLike(CommentLikeDto commentLikeDto, User user, Comment comment) {
-        CommentLike commentLike = new CommentLike();
-        commentLike.setId(commentLikeDto.getId());
-        commentLike.setComment(comment);
-        commentLike.setUser(user);
-        commentLike.setStatus(commentLikeDto.getStatus());
 
-        return commentLike;
-    }
-
-    public CommentLikeDto likeOrDisLikeComment(CommentLikeDto commentLikeDto, LikeStatus likeOrDislike) {
-        User user = userRepository.findById(commentLikeDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", "Id", commentLikeDto.getUserId()));
-        Comment comment = commentRepository.findById(commentLikeDto.getCommentId()).orElseThrow(() -> new ResourceNotFoundException("Comment", "Id", commentLikeDto.getCommentId()));
-        commentLikeDto.setStatus(likeOrDislike);
-        CommentLike commentLike = dtoToCommentLike(commentLikeDto, user, comment);
-        if (!hasUserLikedOrDislikedComment(comment, user, commentLikeDto.getStatus())) {
-            LikeStatus previousLikeOrDisLike = getReverseStatus(commentLikeDto.getStatus());
+    public ApiResponse<LikeDislikeDto> likeOrDisLikeComment(LikeDislikeDto likeDislikeDto, LikeStatus likeOrDislike) {
+        User user = userRepository.findById(likeDislikeDto.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", "Id", likeDislikeDto.getUserId()));
+        Comment comment = commentRepository.findById(likeDislikeDto.getCommentId()).orElseThrow(() -> new ResourceNotFoundException("Comment", "Id", likeDislikeDto.getCommentId()));
+        likeDislikeDto.setStatus(likeOrDislike);
+        LikeDislike likeDisLike = likeDislikeMapper.toEntity(likeDislikeDto, user, comment, null);
+        if (!hasUserLikedOrDislikedComment(comment, user, likeDislikeDto.getStatus())) {
+            LikeStatus previousLikeOrDisLike = CommonUtils.getReverseStatus(likeDislikeDto.getStatus());
             if (hasUserLikedOrDislikedComment(comment, user, previousLikeOrDisLike)) {
-                removeLikeOrDislike(commentLikeDto.getCommentId(), user.getId());
+                removeLikeOrDislikeOnComment(likeDislikeDto.getCommentId(), user.getId());
             }
-            commentService.incrementLikesOrDislikes(comment, commentLikeDto.getStatus());
-            return commentLikeToDto(commentLikeRepository.save(commentLike));
+            commentService.incrementLikesOrDislikes(comment, likeDislikeDto.getStatus());
+            return new ApiResponse<>("User "+user.getId()+ " has given "+ likeDisLike.getStatus() +" to this comment ", true, likeDislikeMapper.toDto(likeDislikeRepository.save(likeDisLike)));
         }
-        return null; // User has already liked/disliked this comment
-    }
-
-    private LikeStatus getReverseStatus(LikeStatus status) {
-        if (status == LikeStatus.LIKE) {
-            return LikeStatus.DISLIKE;
-        } else {
-            return LikeStatus.LIKE;
-        }
+        return new ApiResponse<>("User "+user.getId()+ " has already given "+ likeDisLike.getStatus() +" to the comment with id " + likeDisLike.getComment().getId(), true, null); // User has already liked/disliked this comment
     }
 
 
-    public void removeLikeOrDislike(Long commentId, Long userId) {
+
+
+    public ApiResponse<Object> removeLikeOrDislikeOnComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "Id", commentId));
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "Id", userId));
-        CommentLike commentLike = commentLikeRepository.findByCommentAndUser(comment, user);
-        if (hasUserLikedOrDislikedComment(comment, user, commentLike.getStatus())) {
-            commentService.decrementLikesOrDislikes(commentLike.getComment(), commentLike.getStatus());
-            commentLikeRepository.delete(commentLike);
+        LikeDislike likeDisLike = likeDislikeRepository.findByCommentAndUser(comment, user);
+        if (likeDisLike!=null && hasUserLikedOrDislikedComment(comment, user, likeDisLike.getStatus())) {
+            commentService.decrementLikesOrDislikes(likeDisLike.getComment(), likeDisLike.getStatus());
+            likeDislikeRepository.delete(likeDisLike);
+            return new ApiResponse<>(likeDisLike.getStatus()+" deleted on comment", true, null);
         }
+        return new ApiResponse<>("No reaction exist on this comment by user "+user.getId(), true, null);
     }
 
-    public List<UserDto> getLikesByComment(Long commentId) {
+    public List<UserDto> getLikesOnComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentId));
-        List<CommentLike> commentLikes = commentLikeRepository.findByCommentAndStatus(comment, LikeStatus.LIKE);
-        List<User> likedUser = commentLikes.stream().map(CommentLike::getUser).toList();
-        return likedUser.stream().map(user -> modelMapper.map(user, UserDto.class)).collect(Collectors.toList());
+        List<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.LIKE);
+        List<User> likedUser = likeDislikes.stream().map(LikeDislike::getUser).toList();
+        return likedUser.stream().map(user -> userMapper.toDto(user)).collect(Collectors.toList());
     }
 
-    public List<UserDto> getDislikesByComment(Long commentId) {
+    public List<UserDto> getDislikesOnComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
-        List<CommentLike> commentLikes = commentLikeRepository.findByCommentAndStatus(comment, LikeStatus.DISLIKE);
-        List<User> likedUser = commentLikes.stream().map(CommentLike::getUser).toList();
-        return likedUser.stream().map(user -> modelMapper.map(user, UserDto.class)).collect(Collectors.toList());
+        List<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.DISLIKE);
+        List<User> likedUser = likeDislikes.stream().map(LikeDislike::getUser).toList();
+        return likedUser.stream().map(user -> userMapper.toDto(user)).collect(Collectors.toList());
     }
 
     public List<CommentDto> getLikedCommentsByUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        List<CommentLike> commentsLikes = commentLikeRepository.findByUserAndStatus(user, LikeStatus.LIKE);
-        List<Comment> likedComments = commentsLikes.stream().map(CommentLike::getComment).toList();
-        return likedComments.stream().map(comment -> modelMapper.map(comment, CommentDto.class)).collect(Collectors.toList());
+        List<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndPostIsNull(user, LikeStatus.LIKE);
+        List<Comment> likedComments = commentsLikes.stream().map(LikeDislike::getComment).toList();
+        return likedComments.stream().map(comment -> commentMapper.toDto(comment)).collect(Collectors.toList());
     }
 
     public List<CommentDto> getDislikedCommentsByUser(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        List<CommentLike> commentsLikes = commentLikeRepository.findByUserAndStatus(user, LikeStatus.DISLIKE);
-        List<Comment> likedComments = commentsLikes.stream().map(CommentLike::getComment).toList();
-        return likedComments.stream().map(comment -> modelMapper.map(comment, CommentDto.class)).collect(Collectors.toList());
+        List<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndCommentIsNull(user, LikeStatus.DISLIKE);
+        List<Comment> likedComments = commentsLikes.stream().map(LikeDislike::getComment).toList();
+        return likedComments.stream().map(comment -> commentMapper.toDto(comment)).collect(Collectors.toList());
     }
 
     public boolean hasUserLikedOrDislikedComment(Comment comment, User user, LikeStatus likeStatus) {
-        return commentLikeRepository.existsByCommentAndUserAndStatus(comment, user, likeStatus);
+        return likeDislikeRepository.existsByCommentAndUserAndStatus(comment, user, likeStatus);
     }
+
+
+
+
+
 }
 

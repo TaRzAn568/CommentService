@@ -3,6 +3,7 @@ package com.example.Comment_Service.services.impl;
 import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.CommentDto;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
+import com.example.Comment_Service.mapping.CommentMapper;
 import com.example.Comment_Service.model.*;
 import com.example.Comment_Service.repository.*;
 import com.example.Comment_Service.services.CommentService;
@@ -31,62 +32,10 @@ public class CommentServiceImpl implements CommentService {
     private UserRepository userRepository;
 
     @Autowired
-    ModelMapper modelMapper;
-
-
-    public CommentDto commentToDto(Comment comment) {
-
-    PropertyMap<Comment, CommentDto> propertyMap = new PropertyMap<>() {
-            @Override
-            protected void configure() {
-                map().setPost_Id(source.getPost().getId());
-                map().setUser_Id(source.getUser().getId());
-            }
-        };
-
-    TypeMap<Comment, CommentDto> typeMap = modelMapper.getTypeMap(Comment.class, CommentDto.class);
-    if (typeMap == null){
-        modelMapper.addMappings(propertyMap);
-    }
-    return modelMapper.map(comment, CommentDto.class);
+    CommentMapper commentMapper;
 
 
 
-
-       /* // Create a custom TypeMap to handle child and parent comments
-        TypeMap<Comment, CommentDto> typeMap = modelMapper.createTypeMap(Comment.class, CommentDto.class);
-
-        // Configure custom mappings for childComment and parentComment
-
-        typeMap.addMapping(src -> src.getChildComments().stream()
-                .map(child -> modelMapper.map(child.getChildComment(), CommentDto.class))
-                .collect(Collectors.toList()), CommentDto::setChildComment);
-
-        typeMap.addMapping(src -> src.getParentComments().stream()
-                .map(parent -> modelMapper.map(parent.getParentComment(), CommentDto.class))
-                .collect(Collectors.toList()), CommentDto::setParentComment);
-
-        // Perform the conversion
-        return modelMapper.map(comment, CommentDto.class);*/
-
-       /* TypeMap<Comment, CommentDto> typeMap = modelMapper.createTypeMap(Comment.class, CommentDto.class);
-        typeMap.addMappings(mapper -> {
-            mapper.map(src -> src.getChildComments().stream()
-                    .map(child -> modelMapper.map(child.getChildComment(), CommentDto.class))
-                    .collect(Collectors.toList()), CommentDto::setChildComment);
-            mapper.map(src -> src.getParentComments().stream()
-                    .map(parent -> modelMapper.map(parent.getParentComment(), CommentDto.class))
-                    .collect(Collectors.toList()), CommentDto::setParentComment);
-        });
-
-        return modelMapper.map(comment,CommentDto.class);*/
-    }
-
-
-
-    public Comment dtoToComment(CommentDto commentDto) {
-        return modelMapper.map(commentDto, Comment.class);
-    }
 
 
 
@@ -94,13 +43,13 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getAllTopLevelComments(Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", postId));
         List<Comment> comments = commentRepository.findTopLevelComments(postId);
-        return comments.stream().map(this::commentToDto).toList();
+        return comments.stream().map(comment ->commentMapper.toDto(comment)).toList();
     }
 
     @Override
     public CommentDto getCommentById(Long id) {
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", id));
-        return commentToDto(comment);
+        return commentMapper.toDto(comment);
     }
 
     @Override
@@ -108,20 +57,20 @@ public class CommentServiceImpl implements CommentService {
         User user = userRepository.findById(commentDto.getUser_Id()).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentDto.getUser_Id()));
         Post post = postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("Post", "id", commentDto.getPost_Id()));
 
-        Comment comment = dtoToComment(commentDto);
+        Comment comment = commentMapper.toEntity(commentDto);
         comment.setPost(post);
         comment.setUser(user);
         Comment savedComment = commentRepository.save(comment);
-        return commentToDto(savedComment);
+        return commentMapper.toDto(savedComment);
     }
 
     @Override
     public CommentDto updateComment(Long id, CommentDto newCommentDto) {
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", id));
-        Comment newComment = dtoToComment(newCommentDto);
+        Comment newComment = commentMapper.toEntity(newCommentDto);
         comment.setText(newComment.getText());
         Comment savedComment = commentRepository.save(comment);
-        return commentToDto(savedComment);
+        return commentMapper.toDto(savedComment);
     }
 
     @Override
@@ -135,13 +84,13 @@ public class CommentServiceImpl implements CommentService {
         User user = userRepository.findById(commentDto.getUser_Id()).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentDto.getUser_Id()));
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", parentCommentId));
 
-        Comment childComment = dtoToComment(commentDto);
+        Comment childComment = commentMapper.toEntity(commentDto);
         childComment.setUser(user);
         childComment.setPost(parentComment.getPost());
         childComment.setParentCommentId(parentComment);
 
 
-        return commentToDto(commentRepository.save(childComment));
+        return commentMapper.toDto(commentRepository.save(childComment));
     }
 
 
@@ -151,7 +100,7 @@ public class CommentServiceImpl implements CommentService {
         Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", parentCommentId));
         List<Comment> replies = commentRepository.findNextLevelComments(parentComment);
 
-        return replies.stream().map(this::commentToDto).collect(Collectors.toList());
+        return replies.stream().map(comment -> commentMapper.toDto(comment)).collect(Collectors.toList());
     }
 
     public void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus) {

@@ -25,9 +25,9 @@ public interface CommentService {
 
      List<CommentDto> getRepliesToComment(Long parentCommentId);
 
-     public void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
+      void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
 
-     public void decrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
+      void decrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
 
 
 }

@@ -32,9 +32,9 @@ public class PostController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse> deletePost(@PathVariable("id") Long id) {
+    public ResponseEntity<ApiResponse<Object>> deletePost(@PathVariable("id") Long id) {
         postService.deletePost(id);
-        return new ResponseEntity<>(new ApiResponse("Post deleted successfully", true), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponse<>("Post deleted successfully", true, null), HttpStatus.OK);
 
     }
 

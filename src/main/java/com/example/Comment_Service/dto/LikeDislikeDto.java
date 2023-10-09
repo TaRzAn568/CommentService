@@ -10,10 +10,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentLikeDto {
+public class LikeDislikeDto {
     private Long id;
     private Long commentId;
     private Long userId;
+    private Long postId;
     private LikeStatus status;
 
     // Constructors, getters, and setters

@@ -1,5 +1,6 @@
 package com.example.Comment_Service.services.impl;
 
+import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.PostDto;
 
 import com.example.Comment_Service.exception.ResourceNotFoundException;
@@ -81,5 +82,24 @@ public class PostServiceImpl implements PostService {
        postDto.setUser_id(post.getUser().getId());
 
         return  postDto;
+    }
+
+
+    public void incrementLikesOrDislikes(Post post, LikeStatus likeStatus) {
+        if (likeStatus == LikeStatus.LIKE) {
+            post.setLikes(post.getLikes() + 1);
+        } else if (likeStatus == LikeStatus.DISLIKE) {
+            post.setDislikes(post.getDislikes() + 1);
+        }
+        postRepository.save(post);
+    }
+
+    public void decrementLikesOrDislikes(Post post, LikeStatus likeStatus) {
+        if (likeStatus == LikeStatus.LIKE && post.getLikes() > 0) {
+            post.setLikes(post.getLikes() - 1);
+        } else if (likeStatus == LikeStatus.DISLIKE && post.getDislikes() > 0) {
+            post.setDislikes(post.getDislikes() - 1);
+        }
+        postRepository.save(post);
     }
 }
