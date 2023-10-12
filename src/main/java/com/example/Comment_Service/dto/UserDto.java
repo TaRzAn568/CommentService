@@ -20,6 +20,6 @@ public class UserDto {
     private String email;
     @Size(min = 4,max = 8,message = "password must be minimum of 3 and maximum of 8 chars.")
     private String password;
-    private String fName;
-    private String lName;
+    private String firstName;
+    private String lastName;
 }

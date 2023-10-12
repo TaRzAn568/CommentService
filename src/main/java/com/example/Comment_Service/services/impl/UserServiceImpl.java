@@ -2,18 +2,18 @@ package com.example.Comment_Service.services.impl;
 
 import com.example.Comment_Service.dto.UserDto;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
+import com.example.Comment_Service.mapping.UserMapper;
 import com.example.Comment_Service.model.User;
 import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.UserService;
 import com.example.Comment_Service.utils.ModelMapperConfig;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -21,37 +21,36 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
     @Autowired
-    ModelMapperConfig modelMapperConfig;
+    UserMapper userMapper;
     @Override
     public UserDto createUser(UserDto userDto) {
-        User user = dtoToUser(userDto);
+        User user = userMapper.toEntity(userDto);
         User savedUser = userRepository.save(user);
-        return userToDto(savedUser);
+        return userMapper.toDto(savedUser);
     }
 
     @Override
     public UserDto updateUser(UserDto userDto, Long id) {
         User user = userRepository.findById(id).orElseThrow(()->(new ResourceNotFoundException("User", "id", id)));
         user.setUsername(userDto.getUsername());
-        user.setFName(userDto.getFName());
-        user.setLName(userDto.getLName());
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
-
-        userRepository.save(user);
-        return userDto;
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
     public UserDto getUserById(Long id) {
         User user = userRepository.findById(id).orElseThrow(()->(new ResourceNotFoundException("User", "id", id)));
-        return userToDto(user);
+        return userMapper.toDto(user);
     }
 
     @Override
-    public List<UserDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream().map(this::userToDto).collect(Collectors.toList());
+    public Page<UserDto> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserDto> userDtos = users.getContent().stream().map(user-> userMapper.toDto(user)).toList();
+        return new PageImpl<>(userDtos, pageable, users.getTotalElements());
     }
 
     @Override
@@ -60,11 +59,4 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
-
-    private User dtoToUser(UserDto userDto){
-        return modelMapperConfig.modelMapper().map(userDto, User.class);
-    }
-    private UserDto userToDto(User user){
-        return modelMapperConfig.modelMapper().map(user, UserDto.class);
-    }
 }

@@ -28,10 +28,10 @@ public class User {
     private String password;
     @Column(name="first_name")
 
-    private String fName;
+    private String firstName;
     @Column(name="last_name")
 
-    private String lName;
+    private String lastName;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Post> posts = new ArrayList<>();
