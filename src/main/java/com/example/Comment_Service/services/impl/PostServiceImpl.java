@@ -3,12 +3,14 @@ package com.example.Comment_Service.services.impl;
 import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.PostDto;
 
+import com.example.Comment_Service.entity.Comment;
 import com.example.Comment_Service.exception.ResourceNotFoundException;
 import com.example.Comment_Service.mapping.PostMapper;
 import com.example.Comment_Service.entity.Post;
 import com.example.Comment_Service.entity.User;
 import com.example.Comment_Service.repository.PostRepository;
 import com.example.Comment_Service.repository.UserRepository;
+import com.example.Comment_Service.services.CommentService;
 import com.example.Comment_Service.services.PostService;
 import com.example.Comment_Service.utils.ModelMapperConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class PostServiceImpl implements PostService {
 
     @Autowired
     PostMapper postMapper;
+
+    @Autowired
+    CommentService commentService;
     @Override
     public PostDto createPost(PostDto postDto) {
 
@@ -78,6 +83,9 @@ public class PostServiceImpl implements PostService {
     @Override
     public void deletePost(Long id) {
         Post post = postRepository.findById(id).orElseThrow(()->(new ResourceNotFoundException("Post", "id", id)));
+        for(Comment comment : post.getComments()){
+            commentService.deleteComment(comment.getId());
+        }
         postRepository.delete(post);
     }
 
