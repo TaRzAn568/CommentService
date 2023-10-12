@@ -11,12 +11,11 @@ import com.example.Comment_Service.repository.PostRepository;
 import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.PostService;
 import com.example.Comment_Service.utils.ModelMapperConfig;
-import org.modelmapper.PropertyMap;
-import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Date;
 import java.util.List;
@@ -63,15 +62,18 @@ public class PostServiceImpl implements PostService {
         return postMapper.toDto(post);     }
 
     @Override
-    public List<PostDto> getAllPostsByUser(Long userId) {
+    public Page<PostDto> getAllPostsByUser(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User", "userId",userId));
-        List<Post> posts = postRepository.findByUser(user);
-        return posts.stream().map(post -> postMapper.toDto(post)).collect(Collectors.toList());    }
+        Page<Post> posts = postRepository.findByUser(user, pageable);
+        List<PostDto> postDtos = posts.getContent().stream().map(post -> postMapper.toDto(post)).toList();
+        return new PageImpl<>(postDtos, pageable, posts.getTotalElements());
+    }
 
     @Override
-    public List<PostDto> getAllPost() {
-        List<Post> posts = postRepository.findAll();
-        return posts.stream().map(post -> postMapper.toDto(post)).collect(Collectors.toList());
+    public Page<PostDto> getAllPost(Pageable pageable) {
+        Page<Post> posts = postRepository.findAll(pageable);
+        List<PostDto> postDtos = posts.getContent().stream().map(post -> postMapper.toDto(post)).toList();
+        return new PageImpl<>(postDtos, pageable, posts.getTotalElements());
     }
 
     @Override

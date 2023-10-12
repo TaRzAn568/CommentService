@@ -5,6 +5,9 @@ import com.example.Comment_Service.dto.PostDto;
 import com.example.Comment_Service.services.PostService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,15 +48,20 @@ public class PostController {
 
     }
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<PostDto>> getAllPostByUser(@PathVariable Long userId) {
-        List<PostDto> postDtos = postService.getAllPostsByUser(userId);
+    public ResponseEntity<Page<PostDto>> getAllPostByUser(@PathVariable Long userId,
+                                                          @RequestParam(value = "page", defaultValue = "0") int page,
+                                                          @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PostDto> postDtos = postService.getAllPostsByUser(userId, pageable);
         return new ResponseEntity<>(postDtos,HttpStatus.OK);
 
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<PostDto>> getAllPost() {
-        List<PostDto> postDtos = postService.getAllPost();
+    public ResponseEntity<Page<PostDto>> getAllPost(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                    @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PostDto> postDtos = postService.getAllPost(pageable);
         return new ResponseEntity<>(postDtos,HttpStatus.OK);
 
     }
