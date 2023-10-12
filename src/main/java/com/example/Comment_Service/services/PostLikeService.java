@@ -5,8 +5,10 @@ import com.example.Comment_Service.dto.ApiResponse;
 import com.example.Comment_Service.dto.LikeDislikeDto;
 import com.example.Comment_Service.dto.PostDto;
 import com.example.Comment_Service.dto.UserDto;
-import com.example.Comment_Service.model.Post;
-import com.example.Comment_Service.model.User;
+import com.example.Comment_Service.entity.Post;
+import com.example.Comment_Service.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -16,13 +18,13 @@ public interface PostLikeService {
 
     ApiResponse<Object> removeLikeOrDislikeOnPost(Long postId, Long userId);
 
-    List<UserDto> getLikesOnPost(Long postId);
+    Page<UserDto> getLikesOnPost(Long postId, Pageable pageable);
 
-    List<UserDto> getDislikesOnPost(Long postId);
+    Page<UserDto> getDislikesOnPost(Long postId, Pageable pageable);
 
-    List<PostDto> getLikedPostsByUser(Long userId);
+    Page<PostDto> getLikedPostsByUser(Long userId, Pageable pageable);
 
-    List<PostDto> getDislikedPostsByUser(Long userId);
+    Page<PostDto> getDislikedPostsByUser(Long userId, Pageable pageable);
 
 
     boolean hasUserLikedOrDislikedPost(Post comment, User user, LikeStatus likeStatus) ;

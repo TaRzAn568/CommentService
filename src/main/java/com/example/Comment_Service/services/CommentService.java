@@ -2,13 +2,13 @@ package com.example.Comment_Service.services;
 
 import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.CommentDto;
-import com.example.Comment_Service.model.Comment;
-
-import java.util.List;
+import com.example.Comment_Service.entity.Comment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CommentService {
 
-     List<CommentDto> getAllTopLevelComments(Long postId);
+     Page<CommentDto> getAllTopLevelComments(Long postId, Pageable pageable);
 
      CommentDto getCommentById(Long id);
 
@@ -23,7 +23,8 @@ public interface CommentService {
 
 
 
-     List<CommentDto> getRepliesToComment(Long parentCommentId);
+     Page<CommentDto> getRepliesToComment(Long parentCommentId, Pageable pageable);
+     Page<CommentDto> getAllCommentsByUser(Long userId, Pageable pageable);
 
       void incrementLikesOrDislikes(Comment comment, LikeStatus likeStatus);
 

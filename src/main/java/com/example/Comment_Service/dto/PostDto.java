@@ -1,13 +1,11 @@
 package com.example.Comment_Service.dto;
 
-import com.example.Comment_Service.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter

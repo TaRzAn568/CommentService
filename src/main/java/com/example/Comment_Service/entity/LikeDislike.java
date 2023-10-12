@@ -1,4 +1,4 @@
-package com.example.Comment_Service.model;
+package com.example.Comment_Service.entity;
 
 import com.example.Comment_Service.ENUM.LikeStatus;
 import jakarta.persistence.*;

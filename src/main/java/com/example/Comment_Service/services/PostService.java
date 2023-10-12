@@ -2,7 +2,7 @@ package com.example.Comment_Service.services;
 
 import com.example.Comment_Service.ENUM.LikeStatus;
 import com.example.Comment_Service.dto.PostDto;
-import com.example.Comment_Service.model.Post;
+import com.example.Comment_Service.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

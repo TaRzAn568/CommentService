@@ -1,14 +1,9 @@
 package com.example.Comment_Service.dto;
 
-import com.example.Comment_Service.model.Comment;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter

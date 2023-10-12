@@ -6,9 +6,9 @@ import com.example.Comment_Service.exception.ResourceNotFoundException;
 import com.example.Comment_Service.mapping.CommentMapper;
 import com.example.Comment_Service.mapping.LikeDislikeMapper;
 import com.example.Comment_Service.mapping.UserMapper;
-import com.example.Comment_Service.model.Comment;
-import com.example.Comment_Service.model.LikeDislike;
-import com.example.Comment_Service.model.User;
+import com.example.Comment_Service.entity.Comment;
+import com.example.Comment_Service.entity.LikeDislike;
+import com.example.Comment_Service.entity.User;
 import com.example.Comment_Service.repository.LikeDislikeRepository;
 import com.example.Comment_Service.repository.CommentRepository;
 import com.example.Comment_Service.repository.UserRepository;
@@ -16,6 +16,9 @@ import com.example.Comment_Service.services.CommentLikeService;
 import com.example.Comment_Service.services.CommentService;
 import com.example.Comment_Service.utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -76,32 +79,36 @@ public class CommentLikeServiceImpl implements CommentLikeService {
         return new ApiResponse<>("No reaction exist on this comment by user " + user.getId(), true, null);
     }
 
-    public List<UserDto> getLikesOnComment(Long commentId) {
+    public Page<UserDto> getLikesOnComment(Long commentId, Pageable pageable) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("User", "id", commentId));
-        List<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.LIKE);
-        List<User> likedUser = likeDislikes.stream().map(LikeDislike::getUser).toList();
-        return likedUser.stream().map(user -> userMapper.toDto(user)).collect(Collectors.toList());
+        Page<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.LIKE, pageable);
+        List<User> likedUser = likeDislikes.getContent().stream().map(LikeDislike::getUser).toList();
+        List<UserDto> likedUserDtos = likedUser.stream().map(user -> userMapper.toDto(user)).toList();
+        return new PageImpl<>(likedUserDtos, pageable, likedUser.size());
     }
 
-    public List<UserDto> getDislikesOnComment(Long commentId) {
+    public Page<UserDto> getDislikesOnComment(Long commentId, Pageable pageable) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("Comment", "id", commentId));
-        List<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.DISLIKE);
-        List<User> likedUser = likeDislikes.stream().map(LikeDislike::getUser).toList();
-        return likedUser.stream().map(user -> userMapper.toDto(user)).collect(Collectors.toList());
+        Page<LikeDislike> likeDislikes = likeDislikeRepository.findByCommentAndStatus(comment, LikeStatus.DISLIKE, pageable);
+        List<User> dislikedUser = likeDislikes.getContent().stream().map(LikeDislike::getUser).toList();
+        List<UserDto> dislikedUserDtos = dislikedUser.stream().map(user -> userMapper.toDto(user)).toList();
+        return new PageImpl<>(dislikedUserDtos, pageable, dislikedUser.size());
     }
 
-    public List<CommentDto> getLikedCommentsByUser(Long userId) {
+    public Page<CommentDto> getLikedCommentsByUser(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        List<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndPostIsNull(user, LikeStatus.LIKE);
-        List<Comment> likedComments = commentsLikes.stream().map(LikeDislike::getComment).toList();
-        return likedComments.stream().map(comment -> commentMapper.toDto(comment)).collect(Collectors.toList());
+        Page<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndPostIsNull(user, LikeStatus.LIKE, pageable);
+        List<Comment> likedComments = commentsLikes.getContent().stream().map(LikeDislike::getComment).toList();
+        List<CommentDto> likedCommentDtos = likedComments.stream().map(comment -> commentMapper.toDto(comment)).toList();
+        return new PageImpl<>(likedCommentDtos, pageable, likedComments.size());
     }
 
-    public List<CommentDto> getDislikedCommentsByUser(Long userId) {
+    public Page<CommentDto> getDislikedCommentsByUser(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        List<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndCommentIsNull(user, LikeStatus.DISLIKE);
-        List<Comment> likedComments = commentsLikes.stream().map(LikeDislike::getComment).toList();
-        return likedComments.stream().map(comment -> commentMapper.toDto(comment)).collect(Collectors.toList());
+        Page<LikeDislike> commentsLikes = likeDislikeRepository.findByUserAndStatusAndCommentIsNull(user, LikeStatus.DISLIKE, pageable);
+        List<Comment> dislikedComments = commentsLikes.getContent().stream().map(LikeDislike::getComment).toList();
+        List<CommentDto> dislikedCommentDtos = dislikedComments.stream().map(comment -> commentMapper.toDto(comment)).toList();
+        return new PageImpl<>(dislikedCommentDtos, pageable, dislikedComments.size());
     }
 
     public boolean hasUserLikedOrDislikedComment(Comment comment, User user, LikeStatus likeStatus) {

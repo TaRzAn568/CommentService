@@ -5,8 +5,8 @@ import com.example.Comment_Service.dto.PostDto;
 
 import com.example.Comment_Service.exception.ResourceNotFoundException;
 import com.example.Comment_Service.mapping.PostMapper;
-import com.example.Comment_Service.model.Post;
-import com.example.Comment_Service.model.User;
+import com.example.Comment_Service.entity.Post;
+import com.example.Comment_Service.entity.User;
 import com.example.Comment_Service.repository.PostRepository;
 import com.example.Comment_Service.repository.UserRepository;
 import com.example.Comment_Service.services.PostService;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {

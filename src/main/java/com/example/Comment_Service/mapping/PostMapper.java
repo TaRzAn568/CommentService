@@ -1,7 +1,7 @@
 package com.example.Comment_Service.mapping;
 
 import com.example.Comment_Service.dto.PostDto;
-import com.example.Comment_Service.model.Post;
+import com.example.Comment_Service.entity.Post;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.TypeMap;

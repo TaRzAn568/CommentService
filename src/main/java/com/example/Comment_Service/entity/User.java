@@ -1,6 +1,5 @@
-package com.example.Comment_Service.model;
+package com.example.Comment_Service.entity;
 
-import com.example.Comment_Service.dto.UserDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

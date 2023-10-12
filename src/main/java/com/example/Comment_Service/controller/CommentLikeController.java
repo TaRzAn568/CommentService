@@ -7,6 +7,9 @@ import com.example.Comment_Service.dto.LikeDislikeDto;
 import com.example.Comment_Service.dto.UserDto;
 import com.example.Comment_Service.services.CommentLikeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,32 +49,44 @@ public class CommentLikeController {
     }
 
     @GetMapping("/comment/{commentId}/likes")
-    public ResponseEntity<Map<String, Object>> getLikesByComment(@PathVariable Long commentId) {
-        List<UserDto> likes = commentLikeService.getLikesOnComment(commentId);
+    public ResponseEntity<Map<String, Object>> getLikesByComment(@PathVariable Long commentId,
+                                                                 @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                 @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserDto> likes = commentLikeService.getLikesOnComment(commentId, pageable);
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("Total Likes", likes.size());
+        responseMap.put("Total Likes", likes.getTotalElements());
         responseMap.put("Users", likes);
         return new ResponseEntity<>(responseMap, HttpStatus.OK);
     }
 
     @GetMapping("/comment/{commentId}/dislikes")
-    public ResponseEntity<Map<String, Object>> getDislikesByComment(@PathVariable Long commentId) {
-        List<UserDto> disLikes = commentLikeService.getDislikesOnComment(commentId);
+    public ResponseEntity<Map<String, Object>> getDislikesByComment(@PathVariable Long commentId,
+                                                                    @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                    @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserDto> disLikes = commentLikeService.getDislikesOnComment(commentId, pageable);
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("Total DisLikes", disLikes.size());
+        responseMap.put("Total DisLikes", disLikes.getTotalElements());
         responseMap.put("Users", disLikes);
         return new ResponseEntity<>(responseMap, HttpStatus.OK);
     }
 
     @GetMapping("/user/{userId}/liked-comments")
-    public ResponseEntity<List<CommentDto>> getLikedCommentsByUser(@PathVariable Long userId) {
-        List<CommentDto> likedComments = commentLikeService.getLikedCommentsByUser(userId);
+    public ResponseEntity<Page<CommentDto>> getLikedCommentsByUser(@PathVariable Long userId,
+                                                                   @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                   @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CommentDto> likedComments = commentLikeService.getLikedCommentsByUser(userId, pageable);
         return new ResponseEntity<>(likedComments, HttpStatus.OK);
     }
 
     @GetMapping("/user/{userId}/disliked-comments")
-    public ResponseEntity<List<CommentDto>> getDislikedCommentsByUser(@PathVariable Long userId) {
-        List<CommentDto> dislikedComments = commentLikeService.getDislikedCommentsByUser(userId);
+    public ResponseEntity<Page<CommentDto>> getDislikedCommentsByUser(@PathVariable Long userId,
+                                                                      @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                      @RequestParam(value = "size", defaultValue = "5") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CommentDto> dislikedComments = commentLikeService.getDislikedCommentsByUser(userId, pageable);
         return new ResponseEntity<>(dislikedComments, HttpStatus.OK);
     }
 

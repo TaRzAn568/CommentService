@@ -1,12 +1,7 @@
 package com.example.Comment_Service.mapping;
 
-import com.example.Comment_Service.dto.CommentDto;
 import com.example.Comment_Service.dto.LikeDislikeDto;
-import com.example.Comment_Service.dto.UserDto;
-import com.example.Comment_Service.model.Comment;
-import com.example.Comment_Service.model.LikeDislike;
-import com.example.Comment_Service.model.Post;
-import com.example.Comment_Service.model.User;
+import com.example.Comment_Service.entity.LikeDislike;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.TypeMap;

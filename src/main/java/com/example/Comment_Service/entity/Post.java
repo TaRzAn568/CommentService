@@ -1,4 +1,4 @@
-package com.example.Comment_Service.model;
+package com.example.Comment_Service.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,8 +16,6 @@ import java.util.Date;
 @AllArgsConstructor
 public class Post {
 
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -26,7 +24,6 @@ public class Post {
     @Column(name = "content", length = 10000)
     private String content;
     private Date createDate;
-
     private int likes;
     private int dislikes;
     @ManyToOne(fetch = FetchType.LAZY)

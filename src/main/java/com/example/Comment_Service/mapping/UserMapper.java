@@ -1,12 +1,8 @@
 package com.example.Comment_Service.mapping;
 
-import com.example.Comment_Service.dto.PostDto;
 import com.example.Comment_Service.dto.UserDto;
-import com.example.Comment_Service.model.Post;
-import com.example.Comment_Service.model.User;
+import com.example.Comment_Service.entity.User;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
-import org.modelmapper.TypeMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
